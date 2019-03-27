@@ -10,7 +10,7 @@ raw_dataset = np.load("VG_data.npy")
 dataset_size = len(raw_dataset)
 
 n_latent = 50
-image_size = [300, 200]
+image_size = [256, 256]
 epochs = 1000
 batch_size = 5
 if batch_size > dataset_size:
