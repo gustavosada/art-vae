@@ -1,3 +1,4 @@
 **/VG_data
 **/__pycache__
 *.jpg
+*data.npy
