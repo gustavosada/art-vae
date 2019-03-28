@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import utils
+import math
 
 tf.reset_default_graph()
 # sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
@@ -9,10 +10,10 @@ tf.reset_default_graph()
 raw_dataset = np.load("VG_data.npy")
 dataset_size = len(raw_dataset)
 
-n_latent = 5
+n_latent = 8
 image_size = [256, 256]
-epochs = 100
-batch_size = 1
+epochs = 1000
+batch_size = 5
 
 if batch_size > dataset_size:
     batch_size = dataset_size
@@ -87,22 +88,16 @@ for i in range(epochs):
         sess.run(iterator.initializer)
         try:
             iteration_count = 0
+            n_iterations = math.ceil(dataset_size / batch_size)
             while True:
                     batch = sess.run(next_batch)
-                    iteration_count += batch.shape[0]
-                    print("iteration %s/%s" % (iteration_count, dataset_size))
-                    sess.run(optimizer, feed_dict = {X_in: batch, Y: batch, keep_prob: 0.8})
+                    iteration_count += 1
+                    (_, current_loss) = sess.run([optimizer, loss], feed_dict = {X_in: batch, Y: batch, keep_prob: 0.8})
+                    print("iteration %d/%d - loss: %f" % (iteration_count, n_iterations, current_loss))
         except tf.errors.OutOfRangeError:
             pass
 
-print("finished training")
-
-
-
-# data = raw_dataset
-
-# for i in range(epochs):
-    # sess.run(optimizer, feed_dict = {X_in: data, Y: data, keep_prob: 0.8})
+print("----- FINISHED TRAINING -----")
 
 randoms = [np.random.normal(0, 1, n_latent) for _ in range(5)]
 imgs = sess.run(dec, feed_dict = {sampled: randoms, keep_prob: 1.0})
