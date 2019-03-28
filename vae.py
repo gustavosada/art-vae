@@ -3,17 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import utils
 import math
+from parameters import *
 
 tf.reset_default_graph()
 # sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 
 raw_dataset = np.load("VG_data.npy")
 dataset_size = len(raw_dataset)
-
-n_latent = 8
-image_size = [256, 256]
-epochs = 1000
-batch_size = 5
 
 if batch_size > dataset_size:
     batch_size = dataset_size
