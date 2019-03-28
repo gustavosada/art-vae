@@ -9,10 +9,11 @@ tf.reset_default_graph()
 raw_dataset = np.load("VG_data.npy")
 dataset_size = len(raw_dataset)
 
-n_latent = 50
+n_latent = 5
 image_size = [256, 256]
-epochs = 1000
-batch_size = 5
+epochs = 100
+batch_size = 1
+
 if batch_size > dataset_size:
     batch_size = dataset_size
 
@@ -76,21 +77,32 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 
-# dataset = tf.data.Dataset.from_tensor_slices(raw_dataset)
-# # dataset.repeat(epochs).batch(batch_size)
-# iterator = dataset.make_one_shot_iterator()
-
-# data = []
-#
-# next = iterator.get_next()
-# for i in range(dataset_size):
-#     element = sess.run(next)
-#     data.append(element)
-
-data = raw_dataset
+dataset = tf.data.Dataset.from_tensor_slices(raw_dataset)
+dataset = dataset.batch(batch_size)
+iterator = dataset.make_initializable_iterator()
+next_batch = iterator.get_next()
 
 for i in range(epochs):
-    sess.run(optimizer, feed_dict = {X_in: data, Y: data, keep_prob: 0.8})
+        print("----- EPOCH #%s -----" % (i+1))
+        sess.run(iterator.initializer)
+        try:
+            iteration_count = 0
+            while True:
+                    batch = sess.run(next_batch)
+                    iteration_count += batch.shape[0]
+                    print("iteration %s/%s" % (iteration_count, dataset_size))
+                    sess.run(optimizer, feed_dict = {X_in: batch, Y: batch, keep_prob: 0.8})
+        except tf.errors.OutOfRangeError:
+            pass
+
+print("finished training")
+
+
+
+# data = raw_dataset
+
+# for i in range(epochs):
+    # sess.run(optimizer, feed_dict = {X_in: data, Y: data, keep_prob: 0.8})
 
 randoms = [np.random.normal(0, 1, n_latent) for _ in range(5)]
 imgs = sess.run(dec, feed_dict = {sampled: randoms, keep_prob: 1.0})
