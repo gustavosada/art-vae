@@ -3,6 +3,7 @@ from parameters import *
 
 Input = tf.keras.layers.Input
 Conv2D = tf.keras.layers.Conv2D
+Conv2DTranspose = tf.keras.layers.Conv2DTranspose
 Dense = tf.keras.layers.Dense
 Dropout = tf.keras.layers.Dropout #keras.layers.Dropout(rate, noise_shape=None, seed=None)
 Lambda = tf.keras.layers.Lambda
@@ -20,6 +21,8 @@ ENC_CONV_FILTERS = [32,64,128,256]
 ENC_CONV_KERNEL_SIZES = [4,4,4,4]
 ENC_CONV_STRIDES = [2,2,2,2]
 
+DEC_DENSE = [9, image_size(0)*image_size(1)*3]
+DEC_RESHAPE = [-1, 3, 3, 1]
 DEC_CONV_FILTERS = [32,64,128,256]
 DEC_CONV_KERNEL_SIZES = [4,4,4,4]
 DEC_CONV_STRIDES = [2,2,2,2]
@@ -39,58 +42,44 @@ def sampling(args):
     epsilon = K.random_normal(shape=(K.shape(z_mean)[0], Z_DIM), mean=0.,stddev=1.)
     return z_mean + K.exp(z_log_var / 2) * epsilon
 
+def build():
+    enc_x = Input(shape=image_size)
 
-enc_x = Input(shape=DEC_DIM)
+    enc_c0 = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(vae_x)
+    enc_d0 = Dropout(keep_prob)(enc_c0)
+    enc_c1 = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_d0)
+    enc_d1 = Dropout(keep_prob)(enc_c1)
+    enc_c2 = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_d1)
+    enc_d2 = Dropout(keep_prob)(enc_c2)
 
-enc_c0 = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(vae_x)
-enc_d0 = Dropout(keep_prob)(enc_c0)
-enc_c1 = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_d0)
-enc_d1 = Dropout(keep_prob)(enc_c1)
-enc_c2 = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_d1)
-enc_d2 = Dropout(keep_prob)(enc_c2)
+    enc_f = Flatten()(enc_d2)
 
-enc_f3 = Flatten()(enc_d2)
+    enc_mn = Dense(n_latent)(enc_f)
+    enc_sd = Dense(n_latent)(enc_f)
 
-enc_mn = Dense(n_latent)(enc_f3)
-enc_sd = Dense(n_latent)(enc_f3)
+    enc_z = Lambda(sampling)([enc_mn, enc_sd])
 
-enc_z = Lambda(sampling)([enc_mn, enc_sd])
-
-encoder = Model(enc_x, enc_z, name="encoder")
-encoder.summary()
-
-
+    encoder = Model(enc_x, enc_z, name="encoder")
+    encoder.summary()
 
 
-# def encoder(X_in, keep_prob):
-#     activation = lrelu
-#     with tf.variable_scope("encoder", reuse=None):
-#         X = tf.reshape(X_in, shape=[-1, image_size[0], image_size[1], 3])
-#         x = tf.layers.conv2d(X, filters=32, kernel_size=4, strides=2, padding='same', activation=activation)
-#         x = tf.nn.dropout(x, keep_prob)
-#         x = tf.layers.conv2d(x, filters=32, kernel_size=4, strides=2, padding='same', activation=activation)
-#         x = tf.nn.dropout(x, keep_prob)
-#         x = tf.layers.conv2d(x, filters=32, kernel_size=4, strides=1, padding='same', activation=activation)
-#         x = tf.nn.dropout(x, keep_prob)
-#         x = tf.contrib.layers.flatten(x)
-#         mn = tf.layers.dense(x, units=n_latent)
-#         sd       = 0.5 * tf.layers.dense(x, units=n_latent)
-#         epsilon = tf.random_normal(tf.stack([tf.shape(x)[0], n_latent]))
-#         z  = mn + tf.multiply(epsilon, tf.exp(sd))
-#         return z, mn, sd
+    dec_z = Input(shape=n_latent)
 
-def decoder(sampled_z, keep_prob):
-    with tf.variable_scope("decoder", reuse=None):
-        x = tf.layers.dense(sampled_z, units=inputs_decoder, activation=lrelu)
-        # x = tf.layers.dense(x, units=inputs_decoder * 2 + 1, activation=lrelu)
-        # x = tf.reshape(x, reshaped_dim)
-        x = tf.reshape(x, [-1, 3, 3, 1])
-        x = tf.layers.conv2d_transpose(x, filters=32, kernel_size=4, strides=2, padding='same', activation=tf.nn.relu)
-        x = tf.nn.dropout(x, keep_prob)
-        x = tf.layers.conv2d_transpose(x, filters=32, kernel_size=4, strides=1, padding='same', activation=tf.nn.relu)
-        x = tf.nn.dropout(x, keep_prob)
-        x = tf.layers.conv2d_transpose(x, filters=32, kernel_size=4, strides=1, padding='same', activation=tf.nn.relu)
-        x = tf.contrib.layers.flatten(x)
-        x = tf.layers.dense(x, units=image_size[0]*image_size[1]*3, activation=tf.nn.sigmoid)
-        img = tf.reshape(x, shape=[-1, image_size[0], image_size[1], 3])
-        return img
+    dec_dense0 = Dense(DEC_DENSE[0])(dec_z)
+    dec_r0 = Reshape(DEC_RESHAPE)(dec_d0)
+
+    dec_c0 = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[0], activation='relu')(vae_x)
+    dec_d0 = Dropout(keep_prob)(dec_c0)
+    dec_c1 = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[1], activation='relu')(dec_d0)
+    dec_d1 = Dropout(keep_prob)(dec_c1)
+    dec_c2 = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation='relu')(dec_d1)
+
+    dec_f = Flatten()(dec_c2)
+    dec_dense1 = DENSE(DEC_DENSE[1], activation='sigmoid')(dec_f)
+    dec_x = Reshape(image_size)(dec_dense1)
+
+    decoder = Model(dec_z, dec_x, name="decoder")
+    decoder.summary()
+
+    vae = Model(enc_x, decoder(encoder(enc_x)), name="vae")
+    return vae
