@@ -1,4 +1,5 @@
-n_latent = 8
+n_latent = 15
 image_size = [256, 256]
 epochs = 1000
-batch_size = 5
+batch_size = 32
+keep_prob = 0.8
