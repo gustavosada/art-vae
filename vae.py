@@ -10,9 +10,7 @@ from parameters import *
 # DE DIVERSAS FORMAS, COMPARAR DIFERENTES PARAMETROS DE ENTRADA
 # MAS ANTES AJEITAR A PARTE DE INPUT PARA PODER USAR OUTROS DATASETS COMO O DE MODA
 
-to_categorical = tf.keras.utils.to_categorical
-losses = tf.keras.losses
-optimizers = tf.keras.optimizers
+
 
 
 dataset = np.load("fashion_data.npy")

@@ -5,7 +5,7 @@ Input = tf.keras.layers.Input
 Conv2D = tf.keras.layers.Conv2D
 Conv2DTranspose = tf.keras.layers.Conv2DTranspose
 Dense = tf.keras.layers.Dense
-Dropout = tf.keras.layers.Dropout #keras.layers.Dropout(rate, noise_shape=None, seed=None)
+Dropout = tf.keras.layers.Dropout
 Lambda = tf.keras.layers.Lambda
 Flatten = tf.keras.layers.Flatten
 Reshape = tf.keras.layers.Reshape
@@ -13,13 +13,17 @@ Model = tf.keras.models.Model
 K = tf.keras.backend
 K.set_epsilon(1e-05)
 
+to_categorical = tf.keras.utils.to_categorical
+losses = tf.keras.losses
+optimizers = tf.keras.optimizers
+
 
 ENC_CONV_FILTERS = [32, 32, 32]
 ENC_CONV_KERNEL_SIZES = [4, 4, 4]
 ENC_CONV_STRIDES = [2, 2, 1]
 
-DEC_DENSE = [9, image_size(0)*image_size(1)*3]
-DEC_RESHAPE = [-1, 3, 3, 1]
+DEC_DENSE = [9, image_size[0]*image_size[1]*image_size[2]]
+DEC_RESHAPE = [3, 3, 1]
 DEC_CONV_FILTERS = [32, 32, 32]
 DEC_CONV_KERNEL_SIZES = [4, 4, 4]
 DEC_CONV_STRIDES = [2, 1, 1]
@@ -36,7 +40,7 @@ def sampling(args):
                      to be used in the sampling.
     """
     z_mean, z_log_var = args
-    epsilon = K.random_normal(shape=(K.shape(z_mean)[0], Z_DIM), mean=0.,stddev=1.)
+    epsilon = K.random_normal(shape=(K.shape(z_mean)[0], n_latent), mean=0.,stddev=1.)
     return z_mean + K.exp(z_log_var / 2) * epsilon
 
 def build():
@@ -44,7 +48,7 @@ def build():
     # --------- ENCODER ---------
     enc_x = Input(shape=image_size)
 
-    enc_c0 = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(vae_x)
+    enc_c0 = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(enc_x)
     enc_d0 = Dropout(keep_prob)(enc_c0)
     enc_c1 = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_d0)
     enc_d1 = Dropout(keep_prob)(enc_c1)
@@ -63,19 +67,19 @@ def build():
 
 
     # --------- DECODER ---------
-    dec_z = Input(shape=n_latent)
+    dec_z = Input(shape=(n_latent,))
 
     dec_dense0 = Dense(DEC_DENSE[0])(dec_z)
-    dec_r0 = Reshape(DEC_RESHAPE)(dec_d0)
+    dec_r0 = Reshape(DEC_RESHAPE)(dec_dense0)
 
-    dec_c0 = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[0], activation='relu')(vae_x)
+    dec_c0 = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[0], activation='relu')(dec_r0)
     dec_d0 = Dropout(keep_prob)(dec_c0)
     dec_c1 = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[1], activation='relu')(dec_d0)
     dec_d1 = Dropout(keep_prob)(dec_c1)
     dec_c2 = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation='relu')(dec_d1)
 
     dec_f = Flatten()(dec_c2)
-    dec_dense1 = DENSE(DEC_DENSE[1], activation='sigmoid')(dec_f)
+    dec_dense1 = Dense(DEC_DENSE[1], activation='sigmoid')(dec_f)
     dec_x = Reshape(image_size)(dec_dense1)
 
     decoder = Model(dec_z, dec_x, name="decoder")
@@ -89,7 +93,7 @@ def build():
     # --------- TRAINING DEFINITIONS ---------
     def vae_loss(y_true, y_pred):
         recon = K.sum(losses.categorical_crossentropy(y_true, y_pred))
-        kl = - 0.5 * K.sum(1 + dec_sd - K.square(dec_mn) - K.exp(dec_sd), axis = -1)
+        kl = - 0.5 * K.sum(1 + enc_sd - K.square(enc_mn) - K.exp(enc_sd), axis = -1)
         return K.mean(recon + kl)
 
     Adam = optimizers.Adam(lr=0.001)
