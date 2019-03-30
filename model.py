@@ -13,19 +13,16 @@ Model = tf.keras.models.Model
 K = tf.keras.backend
 K.set_epsilon(1e-05)
 
-dec_in_channels = 1 #NGM SABE QUE MERDA ÉH ESTA
-reshaped_dim = [-1, 7, 7, dec_in_channels] #VERIFICAR ESSES 7 AI TCHE
-inputs_decoder = 18 * dec_in_channels / 2
 
-ENC_CONV_FILTERS = [32,64,128,256]
-ENC_CONV_KERNEL_SIZES = [4,4,4,4]
-ENC_CONV_STRIDES = [2,2,2,2]
+ENC_CONV_FILTERS = [32, 32, 32]
+ENC_CONV_KERNEL_SIZES = [4, 4, 4]
+ENC_CONV_STRIDES = [2, 2, 1]
 
 DEC_DENSE = [9, image_size(0)*image_size(1)*3]
 DEC_RESHAPE = [-1, 3, 3, 1]
-DEC_CONV_FILTERS = [32,64,128,256]
-DEC_CONV_KERNEL_SIZES = [4,4,4,4]
-DEC_CONV_STRIDES = [2,2,2,2]
+DEC_CONV_FILTERS = [32, 32, 32]
+DEC_CONV_KERNEL_SIZES = [4, 4, 4]
+DEC_CONV_STRIDES = [2, 1, 1]
 
 
 def lrelu(x, alpha=0.3):
@@ -43,6 +40,8 @@ def sampling(args):
     return z_mean + K.exp(z_log_var / 2) * epsilon
 
 def build():
+
+    # --------- ENCODER ---------
     enc_x = Input(shape=image_size)
 
     enc_c0 = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(vae_x)
@@ -63,6 +62,7 @@ def build():
     encoder.summary()
 
 
+    # --------- DECODER ---------
     dec_z = Input(shape=n_latent)
 
     dec_dense0 = Dense(DEC_DENSE[0])(dec_z)
@@ -81,5 +81,18 @@ def build():
     decoder = Model(dec_z, dec_x, name="decoder")
     decoder.summary()
 
+
+    # --------- FULL VAE ---------
     vae = Model(enc_x, decoder(encoder(enc_x)), name="vae")
+
+
+    # --------- TRAINING DEFINITIONS ---------
+    def vae_loss(y_true, y_pred):
+        recon = K.sum(losses.categorical_crossentropy(y_true, y_pred))
+        kl = - 0.5 * K.sum(1 + dec_sd - K.square(dec_mn) - K.exp(dec_sd), axis = -1)
+        return K.mean(recon + kl)
+
+    Adam = optimizers.Adam(lr=0.001)
+    vae.compile(optimizer=Adam, loss=vae_loss, metrics=['acc'])
+
     return vae
