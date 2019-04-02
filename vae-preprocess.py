@@ -8,7 +8,7 @@ import numpy as np
 
 #----------- CONSTANTS ------------
 
-IMAGE_SIZE = (256, 256)
+IMAGE_SIZE = (128, 128)
 
 #----------------------------------
 

@@ -99,4 +99,4 @@ def build():
     Adam = optimizers.Adam(lr=0.001)
     vae.compile(optimizer=Adam, loss=vae_loss, metrics=['acc'])
 
-    return vae
+    return vae, encoder, decoder

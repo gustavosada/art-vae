@@ -8,19 +8,16 @@ from parameters import *
 
 # CRIAR UM MAIN E DEFINIR ESSE ARQUIVO DE VAE COMO UMA CLASSE, ASSIM DA PRA USAR O TREINO
 # DE DIVERSAS FORMAS, COMPARAR DIFERENTES PARAMETROS DE ENTRADA
-# MAS ANTES AJEITAR A PARTE DE INPUT PARA PODER USAR OUTROS DATASETS COMO O DE MODA
-
-
 
 
 dataset = np.load("fashion_data.npy")
 dataset_size = len(dataset)
 
-vae = model.build()
+vae, encoder, decoder = model.build()
 
-earlystop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=5, verbose=1, mode='auto')
-callbacks_list = [earlystop]
-
+# earlystop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=5, verbose=1, mode='auto')
+# callbacks_list = [earlystop]
+callbacks_list = []
 vae.fit(
     dataset, dataset,
     shuffle=True,
@@ -29,6 +26,18 @@ vae.fit(
     validation_split=validation_split,
     callbacks=callbacks_list
 )
+
+randoms = [np.random.normal(0, 1, n_latent) for _ in range(5)]
+randoms = np.array(randoms)
+imgs = decoder.predict(randoms, verbose=1)
+imgs = [np.reshape(imgs[i], [image_size[0], image_size[1], 3]) for i in range(len(imgs))]
+
+for img in imgs:
+    plt.figure(figsize=(1,1))
+    plt.axis('off')
+    plt.imshow(img)
+    plt.show()
+
 
 # randoms = [np.random.normal(0, 1, n_latent) for _ in range(5)]
 # imgs = sess.run(dec, feed_dict = {sampled: randoms, keep_prob: 1.0})
