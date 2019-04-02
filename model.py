@@ -18,13 +18,13 @@ losses = tf.keras.losses
 optimizers = tf.keras.optimizers
 
 
-ENC_CONV_FILTERS = [32, 32, 32]
+ENC_CONV_FILTERS = [52, 52, 52]
 ENC_CONV_KERNEL_SIZES = [4, 4, 4]
 ENC_CONV_STRIDES = [2, 2, 1]
 
 DEC_DENSE = [9, image_size[0]*image_size[1]*image_size[2]]
 DEC_RESHAPE = [3, 3, 1]
-DEC_CONV_FILTERS = [32, 32, 32]
+DEC_CONV_FILTERS = [52, 52, 52]
 DEC_CONV_KERNEL_SIZES = [4, 4, 4]
 DEC_CONV_STRIDES = [2, 1, 1]
 
