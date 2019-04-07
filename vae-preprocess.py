@@ -16,13 +16,17 @@ IMAGE_SIZE = (100, 100)
 #----------- PARSE PARAMETERS ------------
 parser = argparse.ArgumentParser()
 parser.add_argument('--data', '-d', help='path of the dataset')
+parser.add_argument('--size', '-s', help='square dimension of the image (only one number)')
 args = parser.parse_args()
 dataPath = args.data
+imageSizeArg = int(args.size)
 
 if not dataPath:
     # print('error: specify dataset with --data arg')
     # exit()
     dataPath = 'VG_data'
+
+IMAGE_SIZE = (imageSizeArg, imageSizeArg)
 #------------------------------------------
 
 

@@ -15,9 +15,9 @@ dataset_size = len(dataset)
 
 vae, encoder, decoder = model.build()
 
-# earlystop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=5, verbose=1, mode='auto')
-# callbacks_list = [earlystop]
-callbacks_list = []
+earlystop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='auto')
+callbacks_list = [earlystop]
+# callbacks_list = []
 vae.fit(
     dataset, dataset,
     shuffle=True,
@@ -27,17 +27,20 @@ vae.fit(
     callbacks=callbacks_list
 )
 
-randoms = [np.random.normal(0, 1, n_latent) for _ in range(5)]
-randoms = np.array(randoms)
-imgs = decoder.predict(randoms, verbose=1)
-imgs = [np.reshape(imgs[i], [image_size[0], image_size[1], 3]) for i in range(len(imgs))]
+# randoms = [np.random.normal(0, 1, n_latent) for _ in range(5)]
+# randoms = np.array(randoms)
+# imgs = decoder.predict(randoms, verbose=1)
+# imgs = [np.reshape(imgs[i], [image_size[0], image_size[1], 3]) for i in range(len(imgs))]
+# for img in imgs:
+#     plt.figure(figsize=(1,1))
+#     plt.axis('off')
+#     plt.imshow(img)
+#     plt.show()
 
-for img in imgs:
-    plt.figure(figsize=(1,1))
-    plt.axis('off')
-    plt.imshow(img)
-    plt.show()
 
+latent_output = encoder.predict(dataset[:37])
+dataset_output = decoder.predict(latent_output)
+utils.saveComparisonImage(dataset[:37], dataset_output)
 
 # randoms = [np.random.normal(0, 1, n_latent) for _ in range(5)]
 # imgs = sess.run(dec, feed_dict = {sampled: randoms, keep_prob: 1.0})
