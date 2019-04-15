@@ -6,8 +6,9 @@ import math
 import model
 from parameters import *
 
-# CRIAR UM MAIN E DEFINIR ESSE ARQUIVO DE VAE COMO UMA CLASSE, ASSIM DA PRA USAR O TREINO
-# DE DIVERSAS FORMAS, COMPARAR DIFERENTES PARAMETROS DE ENTRADA
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+
 
 
 dataset = np.load("fashion_data.npy")
@@ -15,9 +16,9 @@ dataset_size = len(dataset)
 
 vae, encoder, decoder = model.build()
 
-earlystop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='auto')
-callbacks_list = [earlystop]
-# callbacks_list = []
+# earlystop = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=5, verbose=1, mode='auto')
+# callbacks_list = [earlystop]
+callbacks_list = []
 vae.fit(
     dataset, dataset,
     shuffle=True,

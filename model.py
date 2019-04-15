@@ -16,15 +16,18 @@ to_categorical = tf.keras.utils.to_categorical
 losses = tf.keras.losses
 optimizers = tf.keras.optimizers
 
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
 
-ENC_CONV_FILTERS = [64, 32, 16, 8, 12, 12]
-ENC_CONV_KERNEL_SIZES = [4, 4, 2, 2, 2, 2]
+
+ENC_CONV_FILTERS = [64, 64, 64, 64, 64, 64]
+ENC_CONV_KERNEL_SIZES = [3, 3, 3, 7, 3, 3]
 ENC_CONV_STRIDES = [2, 2, 1, 1, 1, 1]
 
-DEC_DENSE = [4, image_size[0]*image_size[1]*image_size[2]]
-DEC_RESHAPE = [2, 2, 1]
-DEC_CONV_FILTERS = [12, 12, 8, 16, 32, 64]
-DEC_CONV_KERNEL_SIZES = [2, 2, 2, 2, 4, 4]
+DEC_DENSE = [9, image_size[0]*image_size[1]*image_size[2]]
+DEC_RESHAPE = [3, 3, 1]
+DEC_CONV_FILTERS = [64, 64, 64, 64, 1, 3]
+DEC_CONV_KERNEL_SIZES = [3, 3, 5, 3, 3, 3]
 DEC_CONV_STRIDES = [1, 1, 1, 1, 2, 2]
 
 
@@ -53,14 +56,14 @@ def build():
     # enc_d1 = Dropout(keep_prob)(enc_c1)
     enc_c2 = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_c1)
     # enc_d2 = Dropout(keep_prob)(enc_c2)
-    enc_c3 = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_c2)
+    # enc_c3 = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_c2)
     # enc_d3 = Dropout(keep_prob)(enc_c3)
     # enc_c4 = Conv2D(filters = ENC_CONV_FILTERS[4], kernel_size = ENC_CONV_KERNEL_SIZES[4], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_d3)
     # enc_d4 = Dropout(keep_prob)(enc_c4)
     # enc_c5 = Conv2D(filters = ENC_CONV_FILTERS[5], kernel_size = ENC_CONV_KERNEL_SIZES[5], strides = ENC_CONV_STRIDES[5], activation=lrelu)(enc_d4)
     # enc_d5 = Dropout(keep_prob)(enc_c5)
 
-    enc_f = Flatten()(enc_c3)
+    enc_f = Flatten()(enc_c2)
 
     enc_mn = Dense(n_latent)(enc_f)
     enc_sd = Dense(n_latent)(enc_f)
@@ -81,9 +84,9 @@ def build():
     # dec_d0 = Dropout(keep_prob)(dec_c0)
     # dec_c1 = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[1], activation='relu')(dec_d0)
     # dec_d1 = Dropout(keep_prob)(dec_c1)
-    dec_c2 = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation='relu')(dec_r0)
+    # dec_c2 = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation='relu')(dec_r0)
     # dec_d2 = Dropout(keep_prob)(dec_c2)
-    dec_c3 = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation='relu')(dec_c2)
+    dec_c3 = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation='relu')(dec_r0)
     # dec_d3 = Dropout(keep_prob)(dec_c3)
     dec_c4 = Conv2DTranspose(filters = DEC_CONV_FILTERS[4], kernel_size = DEC_CONV_KERNEL_SIZES[4], strides = DEC_CONV_STRIDES[4], activation='relu')(dec_c3)
     # dec_d4 = Dropout(keep_prob)(dec_c4)
@@ -91,7 +94,7 @@ def build():
     # dec_d5 = Dropout(keep_prob)(dec_c5)
 
 
-    dec_f = Flatten()(dec_c5)
+    dec_f = Flatten()(dec_c4)
     dec_dense1 = Dense(DEC_DENSE[1], activation='sigmoid')(dec_f)
     dec_x = Reshape(image_size)(dec_dense1)
 
