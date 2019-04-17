@@ -18,7 +18,7 @@ from PIL import Image
 # new_im.save('test.jpg')
 
 #coded for van gogh dataset (37 images)
-def saveComparisonImage(original, decoded):
+def saveComparisonImage(original, decoded, filename="output"):
 
     original = np.uint8(255*original)
     decoded = np.uint8(255*decoded)
@@ -41,4 +41,4 @@ def saveComparisonImage(original, decoded):
         newImage.paste(Image.fromarray(decoded[i]), (x_offset+imX,line*imY))
         x_offset += 2*imX
 
-    newImage.save('output.jpg')
+    newImage.save(filename + ".jpg")
