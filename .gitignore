@@ -1,4 +1,5 @@
 **/VG_data
+**/experiments
 **/__pycache__
 *.jpg
 *data.npy
