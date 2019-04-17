@@ -4,6 +4,8 @@ from parameters import *
 Input = tf.keras.layers.Input
 Conv2D = tf.keras.layers.Conv2D
 Conv2DTranspose = tf.keras.layers.Conv2DTranspose
+MaxPooling2D = tf.keras.layers.MaxPooling2D
+UpSampling2D = tf.keras.layers.UpSampling2D
 Dense = tf.keras.layers.Dense
 Dropout = tf.keras.layers.Dropout
 Lambda = tf.keras.layers.Lambda
@@ -20,15 +22,15 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 
 
-ENC_CONV_FILTERS = [64, 64, 64, 64, 64, 64]
-ENC_CONV_KERNEL_SIZES = [3, 3, 3, 7, 3, 3]
-ENC_CONV_STRIDES = [2, 2, 1, 1, 1, 1]
+ENC_CONV_FILTERS = [64, 64, 64, 32, 32, 32]
+ENC_CONV_KERNEL_SIZES = [5, 5, 5, 3, 3, 3]
+ENC_CONV_STRIDES = [2, 2, 2, 1, 1, 1]
 
-DEC_DENSE = [9, image_size[0]*image_size[1]*image_size[2]]
-DEC_RESHAPE = [3, 3, 1]
-DEC_CONV_FILTERS = [64, 64, 64, 64, 1, 3]
-DEC_CONV_KERNEL_SIZES = [3, 3, 5, 3, 3, 3]
-DEC_CONV_STRIDES = [1, 1, 1, 1, 2, 2]
+DEC_DENSE = [49, image_size[0]*image_size[1]*image_size[2]]
+DEC_RESHAPE = [7, 7, 1]
+DEC_CONV_FILTERS = [32, 32, 32, 32, 16, 5]
+DEC_CONV_KERNEL_SIZES = [3, 3, 3, 5, 5, 5]
+DEC_CONV_STRIDES = [1, 1, 1, 2, 2, 2]
 
 
 def lrelu(x, alpha=0.3):
@@ -50,20 +52,23 @@ def build():
     # --------- ENCODER ---------
     enc_x = Input(shape=image_size)
 
-    enc_c0 = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(enc_x)
-    # enc_d0 = Dropout(keep_prob)(enc_c0)
-    enc_c1 = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_c0)
-    # enc_d1 = Dropout(keep_prob)(enc_c1)
-    enc_c2 = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_c1)
-    # enc_d2 = Dropout(keep_prob)(enc_c2)
+    enc_c0 = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation='relu')(enc_x)
+    enc_m0 = MaxPooling2D((2, 2), padding='same')(enc_c0)
+    # enc_d0 = Dropout(keep_prob)(enc_m0)
+    enc_c1 = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation='relu')(enc_m0)
+    enc_m1 = MaxPooling2D((2, 2), padding='same')(enc_c1)
+    # enc_d1 = Dropout(keep_prob)(enc_m1)
+    enc_c2 = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation='relu')(enc_m1)
+    enc_m2 = MaxPooling2D((2, 2), padding='same')(enc_c2)
+    # enc_d2 = Dropout(keep_prob)(enc_m2)
     # enc_c3 = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_c2)
     # enc_d3 = Dropout(keep_prob)(enc_c3)
-    # enc_c4 = Conv2D(filters = ENC_CONV_FILTERS[4], kernel_size = ENC_CONV_KERNEL_SIZES[4], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_d3)
+    # enc_c4 = Conv2D(filters = ENC_CONV_FILTERS[4], kernel_size = ENC_CONV_KERNEL_SIZES[4], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_c3)
     # enc_d4 = Dropout(keep_prob)(enc_c4)
-    # enc_c5 = Conv2D(filters = ENC_CONV_FILTERS[5], kernel_size = ENC_CONV_KERNEL_SIZES[5], strides = ENC_CONV_STRIDES[5], activation=lrelu)(enc_d4)
+    # enc_c5 = Conv2D(filters = ENC_CONV_FILTERS[5], kernel_size = ENC_CONV_KERNEL_SIZES[5], strides = ENC_CONV_STRIDES[5], activation=lrelu)(enc_c4)
     # enc_d5 = Dropout(keep_prob)(enc_c5)
 
-    enc_f = Flatten()(enc_c2)
+    enc_f = Flatten()(enc_m2)
 
     enc_mn = Dense(n_latent)(enc_f)
     enc_sd = Dense(n_latent)(enc_f)
@@ -82,19 +87,19 @@ def build():
 
     # dec_c0 = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[0], activation='relu')(dec_r0)
     # dec_d0 = Dropout(keep_prob)(dec_c0)
-    # dec_c1 = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[1], activation='relu')(dec_d0)
+    # dec_c1 = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[1], activation='relu')(dec_c0)
     # dec_d1 = Dropout(keep_prob)(dec_c1)
-    # dec_c2 = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation='relu')(dec_r0)
+    # dec_c2 = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation='relu')(dec_c1)
     # dec_d2 = Dropout(keep_prob)(dec_c2)
-    dec_c3 = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation='relu')(dec_r0)
+    # dec_c3 = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation='relu')(dec_r0)
     # dec_d3 = Dropout(keep_prob)(dec_c3)
-    dec_c4 = Conv2DTranspose(filters = DEC_CONV_FILTERS[4], kernel_size = DEC_CONV_KERNEL_SIZES[4], strides = DEC_CONV_STRIDES[4], activation='relu')(dec_c3)
+    dec_c4 = Conv2DTranspose(filters = DEC_CONV_FILTERS[4], kernel_size = DEC_CONV_KERNEL_SIZES[4], strides = DEC_CONV_STRIDES[4], activation='relu')(dec_r0)
     # dec_d4 = Dropout(keep_prob)(dec_c4)
     dec_c5 = Conv2DTranspose(filters = DEC_CONV_FILTERS[5], kernel_size = DEC_CONV_KERNEL_SIZES[5], strides = DEC_CONV_STRIDES[5], activation='relu')(dec_c4)
     # dec_d5 = Dropout(keep_prob)(dec_c5)
 
 
-    dec_f = Flatten()(dec_c4)
+    dec_f = Flatten()(dec_c5)
     dec_dense1 = Dense(DEC_DENSE[1], activation='sigmoid')(dec_f)
     dec_x = Reshape(image_size)(dec_dense1)
 
@@ -111,12 +116,18 @@ def build():
         y_true_flat = K.flatten(y_true)
         y_pred_flat = K.flatten(y_pred)
 
-        recon = 10*K.mean(K.square(y_true_flat - y_pred_flat))
-        # kl = - 0.5 * K.sum(1 + enc_sd - K.square(enc_mn) - K.exp(enc_sd))
-        kl = 0
-        return K.mean(recon + kl)
+        recon = K.sum(K.square(y_true_flat - y_pred_flat))
+        # # recon = K.sum(losses.binary_crossentropy(y_true_flat, y_pred_flat), axis=1)
+        kl = 0.5 * K.sum(K.square(enc_mn) + K.exp(enc_sd) - 1. - enc_sd, axis=1)
+        # # kl = 0
+        return recon + kl
 
-    Adam = optimizers.Adam(lr=0.0005)
-    vae.compile(optimizer=Adam, loss=vae_loss, metrics=['acc'])
+    # def vae_loss(x, x_decoded_mean):
+    # xent_loss = objectives.binary_crossentropy(x, x_decoded_mean)
+    # kl_loss = - 0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma), axis=-1)
+    # return xent_loss + kl_loss
+
+    Adam = optimizers.Adam(lr=0.001)
+    vae.compile(optimizer=Adam, loss=vae_loss)
 
     return vae, encoder, decoder
