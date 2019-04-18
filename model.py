@@ -22,15 +22,15 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 
 
-ENC_CONV_FILTERS = [64, 64, 64, 32, 32, 32]
-ENC_CONV_KERNEL_SIZES = [5, 5, 5, 3, 3, 3]
-ENC_CONV_STRIDES = [2, 2, 2, 1, 1, 1]
+ENC_CONV_FILTERS = [64, 64, 64, 64, 64, 64, 32, 32, 32]
+ENC_CONV_KERNEL_SIZES = [5, 3, 3, 3, 3, 3, 3, 3, 3]
+ENC_CONV_STRIDES = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 
 DEC_DENSE = [49, image_size[0]*image_size[1]*image_size[2]]
 DEC_RESHAPE = [7, 7, 1]
-DEC_CONV_FILTERS = [32, 32, 32, 32, 16, 5]
-DEC_CONV_KERNEL_SIZES = [3, 3, 3, 5, 5, 5]
-DEC_CONV_STRIDES = [1, 1, 1, 2, 2, 2]
+DEC_CONV_FILTERS = [32, 32, 32, 32, 16, 16, 16, 16, 8]
+DEC_CONV_KERNEL_SIZES = [3, 3, 3, 3, 3, 3, 3, 3, 5]
+DEC_CONV_STRIDES = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 
 
 def lrelu(x, alpha=0.3):
@@ -52,14 +52,17 @@ def build():
     # --------- ENCODER ---------
     enc_x = Input(shape=image_size)
 
-    enc_c0 = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation='relu')(enc_x)
-    enc_m0 = MaxPooling2D((2, 2), padding='same')(enc_c0)
+    enc_h = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation='relu')(enc_x)
+    enc_h = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation='relu')(enc_h)
+    enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
     # enc_d0 = Dropout(keep_prob)(enc_m0)
-    enc_c1 = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation='relu')(enc_m0)
-    enc_m1 = MaxPooling2D((2, 2), padding='same')(enc_c1)
+    enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation='relu')(enc_h)
+    enc_h = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation='relu')(enc_h)
+    enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
     # enc_d1 = Dropout(keep_prob)(enc_m1)
-    enc_c2 = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation='relu')(enc_m1)
-    enc_m2 = MaxPooling2D((2, 2), padding='same')(enc_c2)
+    enc_h = Conv2D(filters = ENC_CONV_FILTERS[4], kernel_size = ENC_CONV_KERNEL_SIZES[4], strides = ENC_CONV_STRIDES[4], activation='relu')(enc_h)
+    enc_h = Conv2D(filters = ENC_CONV_FILTERS[5], kernel_size = ENC_CONV_KERNEL_SIZES[5], strides = ENC_CONV_STRIDES[5], activation='relu')(enc_h)
+    enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
     # enc_d2 = Dropout(keep_prob)(enc_m2)
     # enc_c3 = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_c2)
     # enc_d3 = Dropout(keep_prob)(enc_c3)
@@ -68,7 +71,7 @@ def build():
     # enc_c5 = Conv2D(filters = ENC_CONV_FILTERS[5], kernel_size = ENC_CONV_KERNEL_SIZES[5], strides = ENC_CONV_STRIDES[5], activation=lrelu)(enc_c4)
     # enc_d5 = Dropout(keep_prob)(enc_c5)
 
-    enc_f = Flatten()(enc_m2)
+    enc_f = Flatten()(enc_h)
 
     enc_mn = Dense(n_latent)(enc_f)
     enc_sd = Dense(n_latent)(enc_f)
@@ -91,15 +94,20 @@ def build():
     # dec_d1 = Dropout(keep_prob)(dec_c1)
     # dec_c2 = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation='relu')(dec_c1)
     # dec_d2 = Dropout(keep_prob)(dec_c2)
-    # dec_c3 = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation='relu')(dec_r0)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation='relu')(dec_r0)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[4], kernel_size = DEC_CONV_KERNEL_SIZES[4], strides = DEC_CONV_STRIDES[4], activation='relu')(dec_h)
+    # dec_h = UpSampling2D((2, 2))(dec_h)
     # dec_d3 = Dropout(keep_prob)(dec_c3)
-    dec_c4 = Conv2DTranspose(filters = DEC_CONV_FILTERS[4], kernel_size = DEC_CONV_KERNEL_SIZES[4], strides = DEC_CONV_STRIDES[4], activation='relu')(dec_r0)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[5], kernel_size = DEC_CONV_KERNEL_SIZES[5], strides = DEC_CONV_STRIDES[5], activation='relu')(dec_h)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[5], kernel_size = DEC_CONV_KERNEL_SIZES[5], strides = DEC_CONV_STRIDES[5], activation='relu')(dec_h)
+    # dec_h = UpSampling2D((2, 2))(dec_h)
     # dec_d4 = Dropout(keep_prob)(dec_c4)
-    dec_c5 = Conv2DTranspose(filters = DEC_CONV_FILTERS[5], kernel_size = DEC_CONV_KERNEL_SIZES[5], strides = DEC_CONV_STRIDES[5], activation='relu')(dec_c4)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[6], kernel_size = DEC_CONV_KERNEL_SIZES[6], strides = DEC_CONV_STRIDES[6], activation='relu')(dec_h)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[7], kernel_size = DEC_CONV_KERNEL_SIZES[7], strides = DEC_CONV_STRIDES[7], activation='relu')(dec_h)
     # dec_d5 = Dropout(keep_prob)(dec_c5)
 
 
-    dec_f = Flatten()(dec_c5)
+    dec_f = Flatten()(dec_h)
     dec_dense1 = Dense(DEC_DENSE[1], activation='sigmoid')(dec_f)
     dec_x = Reshape(image_size)(dec_dense1)
 

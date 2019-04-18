@@ -1,6 +1,6 @@
-n_latent = 20
-image_size = [200, 200, 3]
-epochs = 100
-batch_size = 5
-keep_prob = 0.8
-validation_split = 0.2
+n_latent = 70
+image_size = [128, 128, 3]
+epochs = 50
+batch_size = 32
+keep_prob = 0.7
+validation_split = 0

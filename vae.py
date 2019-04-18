@@ -40,16 +40,16 @@ try:
 except:
     pass
 model_filename = "experiments/{}_{}_{}_{}".format(experiment, n_latent, batch_size, epochs)
-# if save_flag:
-#     vae.save(model_filename+"_vae.h5")
-#     del vae
-#     gc.collect()
-#     encoder.save(model_filename+"_enc.h5")
-#     del encoder
-#     gc.collect()
-#     decoder.save(model_filename+"_dec.h5")
-#     del decoder
-#     gc.collect()
+if save_flag:
+    vae.save(model_filename+"_vae.h5")
+    del vae
+    gc.collect()
+    encoder.save(model_filename+"_enc.h5")
+    del encoder
+    gc.collect()
+    decoder.save(model_filename+"_dec.h5")
+    del decoder
+    gc.collect()
 
 randoms = [np.random.normal(0, 1, n_latent) for _ in range(15)]
 randoms = np.array(randoms)
