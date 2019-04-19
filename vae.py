@@ -22,9 +22,9 @@ dataset_size = len(dataset)
 
 vae, encoder, decoder = model.build()
 
-earlystop = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=5, verbose=1, mode='auto')
-callbacks_list = [earlystop]
-# callbacks_list = []
+# earlystop = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=5, verbose=1, mode='auto')
+# callbacks_list = [earlystop]
+callbacks_list = []
 
 vae.fit(
     dataset, dataset,
@@ -35,21 +35,6 @@ vae.fit(
     callbacks=callbacks_list
 )
 
-try:
-    os.mkdir("experiments")
-except:
-    pass
-model_filename = "experiments/{}_{}_{}_{}".format(experiment, n_latent, batch_size, epochs)
-if save_flag:
-    vae.save(model_filename+"_vae.h5")
-    del vae
-    gc.collect()
-    encoder.save(model_filename+"_enc.h5")
-    del encoder
-    gc.collect()
-    decoder.save(model_filename+"_dec.h5")
-    del decoder
-    gc.collect()
 
 randoms = [np.random.normal(0, 1, n_latent) for _ in range(15)]
 randoms = np.array(randoms)
@@ -61,7 +46,32 @@ for img in imgs:
     plt.imshow(img)
     plt.show()
 
+try:
+    os.mkdir("experiments")
+except:
+    pass
+model_filename = "experiments/{}_{}_{}_{}".format(experiment, n_latent, batch_size, epochs)
+
+
 np.random.shuffle(dataset)
 latent_output = encoder.predict(dataset[:37])
 dataset_output = decoder.predict(latent_output)
 utils.saveComparisonImage(dataset[:37], dataset_output, model_filename)
+
+del dataset
+del latent_output
+del dataset_output
+del imgs
+del randoms
+gc.collect()
+
+if save_flag:
+    vae.save_weights(model_filename+"_vae.h5")
+    del vae
+    gc.collect()
+    encoder.save_weights(model_filename+"_enc.h5")
+    del encoder
+    gc.collect()
+    decoder.save_weights(model_filename+"_dec.h5")
+    del decoder
+    gc.collect()
