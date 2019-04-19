@@ -2,22 +2,44 @@ import sys
 import numpy as np
 from PIL import Image
 
-# images = map(Image.open, ['Test1.jpg', 'Test2.jpg', 'Test3.jpg'])
-# widths, heights = zip(*(i.size for i in images))
+# def saveInterpolationImage(image1, interpolation, image2, filename="output"):
+#     image1 = np.uint8(255*image1)
+#     interpolation = np.uint8(255*interpolation)
+#     image2 = np.uint8(255*image2)
 #
-# total_width = sum(widths)
-# max_height = max(heights)
+#     imY = np.shape(image1)[0]
+#     imX = np.shape(image1)[1]
 #
-# new_im = Image.new('RGB', (total_width, max_height))
+#     height = imY
+#     width = 3*imX
 #
-# x_offset = 0
-# for im in images:
-#   new_im.paste(im, (x_offset,0))
-#   x_offset += im.size[0]
-#
-# new_im.save('test.jpg')
+#     newImage = Image.new('RGB', (width, height))
+#     newImage.paste(Image.fromarray(image1), (0, 0))
+#     newImage.paste(Image.fromarray(interpolation), (imX, 0))
+#     newImage.paste(Image.fromarray(image2), (2*imX, 0))
+#     newImage.save(filename+".jpg")
 
-#coded for van gogh dataset (37 images)
+def saveInterpolationImage(image1, i_array, image2, filename="output"):
+    image1 = np.uint8(255*image1)
+    i_array = np.uint8(255*i_array)
+    image2 = np.uint8(255*image2)
+    n = np.shape(i_array)[0]
+
+    imY = np.shape(image1)[0]
+    imX = np.shape(image1)[1]
+
+    height = imY
+    width = (2+n)*imX
+
+    newImage = Image.new('RGB', (width, height))
+    newImage.paste(Image.fromarray(image1), (0, 0))
+    i = 1
+    while i <= n:
+        newImage.paste(Image.fromarray(i_array[i-1]), (i*imX, 0))
+        i += 1
+    newImage.paste(Image.fromarray(image2), (i*imX, 0))
+    newImage.save(filename+".jpg")
+
 def saveComparisonImage(original, decoded, filename="output"):
 
     original = np.uint8(255*original)
