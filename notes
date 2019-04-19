@@ -2,15 +2,25 @@ O=(W−K+2P)/S+1
 
 losses
 5
-  100 - 0.1547
+  100(64) - 0.1547
 2
-  100 - 0.2140
+  100(64) - 0.2140
 10
-  100 - 0.1282
-  300 - 0.1110
+  100(64) - 0.1282
+  300(64) - 0.1110
 20
-  300 - 0.1095
+  100(5) - 0.1125
+  300(64) - 0.1095
+50
+  200(32) - 0.062 ()
+  200(32) - 0.021 - lr=0.0005 - 3 conv (32, 32, 5)
+----------------------------------
 
+
+STEPS:
+1 - salvar pesos
+2 - interpolação (operacoes entre imagens) (dá pra tentar outras operacoes, mais imagens na mesma operacao, etc)
+3 - mexer individualmente em cada variavel latente
 
 -----------------------------
 
@@ -18,3 +28,9 @@ entender o pq da KL divergence
   sem nao generaliza? e o erro de validação?
 
 entender as convoluções
+
+QUANTO QUE IMPORTA O VAL_LOSS?
+
+por que somar a media nao funciona?
+
+qual a metodologia do tcc? para decidir os parametros? que resultados tangiveis tem que colocar?
