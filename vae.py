@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.keras.callbacks import TensorBoard
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -7,6 +8,7 @@ import argparse
 import math
 import model
 import gc
+from time import time
 from parameters import *
 
 
@@ -16,6 +18,8 @@ parser.add_argument('-s', '--save', help='save model weights flag', action="stor
 args = parser.parse_args()
 experiment = args.experiment
 save_flag = args.save
+
+# tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
 dataset = np.load("fashion_data.npy")
 dataset_size = len(dataset)
@@ -36,7 +40,7 @@ vae.fit(
 )
 
 
-randoms = [np.random.normal(0, 1, n_latent) for _ in range(15)]
+randoms = [np.random.normal(0, 1, n_latent) for _ in range(1)]
 randoms = np.array(randoms)
 imgs = decoder.predict(randoms, verbose=1)
 imgs = [np.reshape(imgs[i], [image_size[0], image_size[1], 3]) for i in range(len(imgs))]
