@@ -3,3 +3,7 @@
 **/__pycache__
 *.jpg
 *data.npy
+**/images*
+**/logs
+**/mvc
+**/fashion_data
