@@ -2,7 +2,7 @@
 **/experiments
 **/__pycache__
 *.jpg
-*data.npy
+*.npy
 **/images*
 **/logs
 **/mvc
