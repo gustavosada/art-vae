@@ -22,6 +22,15 @@ def createExperimentDir(experiment_name):
 
     return experiment_dir
 
+def createDir(dirpath):
+
+    try:
+        os.mkdir(dirpath)
+    except:
+        pass
+
+    return dirpath
+
 
 
 def saveModelDescription(encoder, decoder, experiment_dir):
