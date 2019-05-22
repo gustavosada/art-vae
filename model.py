@@ -45,7 +45,6 @@ def sampling(args):
 
 def build():
 
-
     # --------- ENCODER ---------
     enc_x = Input(shape=image_size)
 
@@ -82,9 +81,6 @@ def build():
     enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
 
     enc_h = Flatten()(enc_h)
-    # enc_h = Dense(4096)(enc_h)
-    # enc_h = Dense(4096)(enc_h)
-    # enc_h = Dense(1000)(enc_h)
 
 
     enc_mn = Dense(n_latent)(enc_h)
@@ -98,9 +94,6 @@ def build():
 
     # --------- DECODER ---------
     dec_z = Input(shape=(n_latent,))
-    # dec_h = Dense(1000)(dec_z)
-    # dec_h = Dense(4096)(dec_h)
-    # dec_h = Dense(4096)(dec_h)
 
     dec_dense0 = Dense(DEC_DENSE[0])(dec_z)
     dec_r0 = Reshape(DEC_RESHAPE)(dec_dense0)
@@ -140,9 +133,6 @@ def build():
     dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[5], kernel_size = DEC_CONV_KERNEL_SIZES[5], strides = DEC_CONV_STRIDES[5], activation=lrelu)(dec_h)
     dec_h = BatchNormalization()(dec_h)
 
-    # dec_f = Flatten()(dec_h)
-    # dec_dense1 = Dense(DEC_DENSE[1], activation='sigmoid')(dec_f)
-    # dec_x = Reshape(image_size)(dec_dense1)
     dec_x = dec_h
 
     decoder = Model(dec_z, dec_x, name="decoder")
