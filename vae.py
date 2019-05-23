@@ -54,26 +54,19 @@ def warmup(epoch):
     print("beta:", value)
     K.set_value(beta, value)
 
-def saveSubModels(epoch, log={}):
-    frequency = 80
-    if epoch % frequency == 0 and epoch != 0:
-        encoder.save_weights(os.path.join(experiment_dir, "checkpoint-{epoch:02d}-{loss:02f}-enc.h5".format(epoch=epoch, loss=log['loss'])))
-        decoder.save_weights(os.path.join(experiment_dir, "checkpoint-{epoch:02d}-{loss:02f}-dec.h5".format(epoch=epoch, loss=log['loss'])))
-
 def saveCurrentSampleCB(epoch):
     frequency = 1
     if epoch % frequency == 0 and epoch != 0:
         utils.saveCurrentSample(encoder, decoder, dataset[0], os.path.join(experiment_dir, "sample-{}.jpg".format(epoch)))
 
-saveFrequency = 80
+saveFrequency = 20
 saveCB = tf.keras.callbacks.ModelCheckpoint(os.path.join(experiment_dir, "checkpoint-{epoch:02d}-{loss:02f}.h5"), period=saveFrequency, monitor='loss', verbose=0, save_best_only=True, save_weights_only=True, mode='auto')
-saveSubModelsCB = tf.keras.callbacks.LambdaCallback(on_epoch_end=lambda epoch, log: saveSubModels(epoch, log))
 warmupCB = tf.keras.callbacks.LambdaCallback(on_epoch_begin=lambda epoch, log: warmup(epoch))
 saveImageCB = tf.keras.callbacks.LambdaCallback(on_epoch_end=lambda epoch, log: saveCurrentSampleCB(epoch))
-tensorboard = TensorBoard(log_dir="logs/{}".format(experiment))
+tensorboard = TensorBoard(log_dir="logs/{}".format(experiment+" "+time()))
 earlystop = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=5, verbose=10, mode='auto')
 
-callbacks_list = [tensorboard, saveImageCB, saveSubModelsCB]
+callbacks_list = [tensorboard, saveImageCB, saveCB]
 
 if save_flag:
     callbacks_list.append(saveCB)
