@@ -24,16 +24,16 @@ optimizers = tf.keras.optimizers
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 
-ENC_CONV_FILTERS =      [16, 32, 64, 128, 128]
-ENC_CONV_KERNEL_SIZES = [3, 3, 3, 3, 3]
-ENC_CONV_STRIDES =      [1, 1, 1, 1, 1]
+ENC_CONV_FILTERS =      [64, 128, 256]
+ENC_CONV_KERNEL_SIZES = [5]
+ENC_CONV_STRIDES =      [1, 2, 2, 1, 1, 2, 1, 2]
 
-DEC_DENSE = [7*7*2048, image_size[0]*image_size[1]*image_size[2]]
-DEC_RESHAPE = [7, 7, 2048]
+DEC_DENSE = [8*8*256, image_size[0]*image_size[1]*image_size[2]]
+DEC_RESHAPE = [8, 8, 256]
 
-DEC_CONV_FILTERS = [512, 256, 128, 64, 32, image_size[2]]
-DEC_CONV_KERNEL_SIZES = [3, 3, 3, 3, 2, 2]
-DEC_CONV_STRIDES = [1, 1, 1, 1, 1, 1]
+DEC_CONV_FILTERS = [256, 128, 64, image_size[2]]
+DEC_CONV_KERNEL_SIZES = [5, 4]
+DEC_CONV_STRIDES = [2, 1, 2, 1, 2, 2, 1]
 
 
 def lrelu(x, alpha=0.3):
@@ -51,21 +51,18 @@ def build():
     #
     # enc_h = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(enc_x)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[5], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[2], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
-    # enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
+
+
     # enc_h = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
     # enc_h = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
@@ -80,8 +77,6 @@ def build():
     # enc_h = Conv2D(filters = ENC_CONV_FILTERS[4], kernel_size = ENC_CONV_KERNEL_SIZES[4], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
     # enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
-    #
-    # enc_h = Flatten()(enc_h)
 
     resnet = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
     enc_x = resnet.input
@@ -102,46 +97,21 @@ def build():
 
     dec_dense0 = Dense(DEC_DENSE[0])(dec_z)
     dec_r0 = Reshape(DEC_RESHAPE)(dec_dense0)
-
-    dec_h = UpSampling2D((2, 2))(dec_r0)
+    dec_h = dec_r0
     dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[0], activation=lrelu)(dec_h)
     dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[0], activation=lrelu)(dec_h)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[1], activation=lrelu)(dec_h)
     dec_h = BatchNormalization()(dec_h)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[2], activation=lrelu)(dec_h)
+    dec_h = BatchNormalization()(dec_h)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[0], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[3], activation=lrelu)(dec_h)
+    dec_h = BatchNormalization()(dec_h)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[4], activation=lrelu)(dec_h)
+    dec_h = BatchNormalization()(dec_h)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[5], activation=lrelu)(dec_h)
+    dec_h = BatchNormalization()(dec_h)
+    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[6], activation=lrelu)(dec_h)
 
-    # dec_h = UpSampling2D((2, 2))(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[1], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[1], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[1], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[1], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-
-    dec_h = UpSampling2D((2, 2))(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    # dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[2], strides = DEC_CONV_STRIDES[2], activation=lrelu)(dec_h)
-    # dec_h = BatchNormalization()(dec_h)
-
-    dec_h = UpSampling2D((2, 2))(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[3], strides = DEC_CONV_STRIDES[3], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-
-    dec_h = UpSampling2D((2, 2))(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[4], kernel_size = DEC_CONV_KERNEL_SIZES[4], strides = DEC_CONV_STRIDES[4], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[4], kernel_size = DEC_CONV_KERNEL_SIZES[4], strides = DEC_CONV_STRIDES[4], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[4], kernel_size = DEC_CONV_KERNEL_SIZES[4], strides = DEC_CONV_STRIDES[4], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
-    dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[5], kernel_size = DEC_CONV_KERNEL_SIZES[5], strides = DEC_CONV_STRIDES[5], activation=lrelu)(dec_h)
-    dec_h = BatchNormalization()(dec_h)
 
     dec_x = dec_h
 
@@ -156,21 +126,26 @@ def build():
 
     # --------- TRAINING DEFINITIONS ---------
 
-    beta = K.variable(value=beta_parameter)
-    def vae_loss(y_true, y_pred):
+    def kl_loss(y_true, y_pred):
         y_true_flat = K.flatten(y_true)
         y_pred_flat = K.flatten(y_pred)
-
-        recon = K.mean(K.square(y_true_flat - y_pred_flat))
-        recon = K.print_tensor(recon, message='\nrecon = ')
-
         kl = 0.5 * K.mean(K.square(enc_mn) + K.exp(enc_sd) - 1. - enc_sd)
-        kl = K.print_tensor(kl, message='\nkl = ')
+        return kl
 
+    def recon_loss(y_true, y_pred):
+        y_true_flat = K.flatten(y_true)
+        y_pred_flat = K.flatten(y_pred)
+        recon = K.mean(K.square(y_true_flat - y_pred_flat))
+        return recon
+
+    beta = K.variable(value=beta_parameter)
+    def vae_loss(y_true, y_pred):
+        recon = recon_loss(y_true, y_pred)
+        kl = kl_loss(y_true, y_pred)
         return recon + beta*kl
 
 
     Adam = optimizers.Adam(lr=learning_rate)
-    vae.compile(optimizer=Adam, loss=vae_loss)
+    vae.compile(optimizer=Adam, loss=vae_loss, metrics=[recon_loss, kl_loss])
 
     return vae, encoder, decoder, beta

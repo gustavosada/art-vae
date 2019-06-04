@@ -25,7 +25,7 @@ if not experiment_dir:
     exit()
 
 # load dataset
-dataset = np.load("big_fashion.npy")
+dataset = np.load(dataset_name)
 # dataset = dataset[:1000]
 dataset_size = len(dataset)
 
@@ -34,12 +34,13 @@ vae, encoder, decoder, beta = model.build()
 if load:
     filename = load
     vae.load_weights(os.path.join(experiment_dir, filename+".h5"))
-    experiment_dir = os.path.join(experiment_dir, time())
+    experiment_dir = os.path.join(experiment_dir, str(time.time()))
     utils.createDir(experiment_dir)
 
 
 # save model info
 utils.saveModelDescription(encoder, decoder, experiment_dir)
+
 
 # set training
 def warmup(epoch):
@@ -63,7 +64,7 @@ saveFrequency = 20
 saveCB = tf.keras.callbacks.ModelCheckpoint(os.path.join(experiment_dir, "checkpoint-{epoch:02d}-{loss:02f}.h5"), period=saveFrequency, monitor='loss', verbose=0, save_best_only=True, save_weights_only=True, mode='auto')
 warmupCB = tf.keras.callbacks.LambdaCallback(on_epoch_begin=lambda epoch, log: warmup(epoch))
 saveImageCB = tf.keras.callbacks.LambdaCallback(on_epoch_end=lambda epoch, log: saveCurrentSampleCB(epoch))
-tensorboard = TensorBoard(log_dir="logs/{}".format(experiment+" "+time()))
+tensorboard = TensorBoard(log_dir=os.path.join(experiment_dir, "training"))
 earlystop = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=0.00001, patience=5, verbose=10, mode='auto')
 
 callbacks_list = [tensorboard, saveImageCB, saveCB]
