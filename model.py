@@ -57,28 +57,8 @@ def build():
     # enc_h = BatchNormalization()(enc_h)
     # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[5], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
 
-
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[3], kernel_size = ENC_CONV_KERNEL_SIZES[3], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
-    # enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[4], kernel_size = ENC_CONV_KERNEL_SIZES[4], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[4], kernel_size = ENC_CONV_KERNEL_SIZES[4], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[4], kernel_size = ENC_CONV_KERNEL_SIZES[4], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_h)
-    # enc_h = BatchNormalization()(enc_h)
-    # enc_h = MaxPooling2D((2, 2), padding='same')(enc_h)
-
-    resnet = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+    resnet = ResNet50(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
     enc_x = resnet.input
 
     enc_h = resnet.layers[-1].output
