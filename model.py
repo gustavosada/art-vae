@@ -25,7 +25,7 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 
 ENC_CONV_FILTERS =      [64, 128, 256]
-ENC_CONV_KERNEL_SIZES = [5]
+ENC_CONV_KERNEL_SIZES = [5, 1]
 ENC_CONV_STRIDES =      [1, 2, 2, 1, 1, 2, 1, 2]
 
 DEC_DENSE = [8*8*256, image_size[0]*image_size[1]*image_size[2]]
@@ -48,20 +48,29 @@ def build():
 
     # --------- ENCODER ---------
     # enc_x = Input(shape=image_size)
-    #
+    # enc_h = BatchNormalization()(enc_x)
     # enc_h = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[0], activation=lrelu)(enc_x)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[1], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[2], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
-    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[3], activation=lrelu)(enc_h)
+    # enc_h = BatchNormalization()(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[0], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[4], activation=lrelu)(enc_h)
+    # enc_h = BatchNormalization()(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[5], activation=lrelu)(enc_h)
+    # enc_h = BatchNormalization()(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[1], kernel_size = ENC_CONV_KERNEL_SIZES[0], strides = ENC_CONV_STRIDES[6], activation=lrelu)(enc_h)
+    # enc_h = BatchNormalization()(enc_h)
+    # enc_h = Conv2D(filters = ENC_CONV_FILTERS[2], kernel_size = ENC_CONV_KERNEL_SIZES[1], strides = ENC_CONV_STRIDES[7], activation=lrelu)(enc_h)
     # enc_h = BatchNormalization()(enc_h)
 
     resnet = ResNet50(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
     enc_x = resnet.input
 
     enc_h = resnet.layers[-1].output
+
     enc_h = Flatten()(enc_h)
     enc_mn = Dense(n_latent)(enc_h)
     enc_sd = Dense(n_latent)(enc_h)
@@ -91,7 +100,7 @@ def build():
     dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[2], kernel_size = DEC_CONV_KERNEL_SIZES[0], strides = DEC_CONV_STRIDES[5], activation=lrelu)(dec_h)
     dec_h = BatchNormalization()(dec_h)
     dec_h = Conv2DTranspose(filters = DEC_CONV_FILTERS[3], kernel_size = DEC_CONV_KERNEL_SIZES[1], strides = DEC_CONV_STRIDES[6], activation=lrelu)(dec_h)
-
+    dec_h = BatchNormalization()(dec_h)
 
     dec_x = dec_h
 
